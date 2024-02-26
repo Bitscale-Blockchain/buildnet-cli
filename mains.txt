@@ -1,0 +1,222 @@
+package main
+
+import (
+	"bitscale/buildnet/lib/config"
+	"bitscale/buildnet/lib/event"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+	"time"
+)
+
+type BuildContext struct {
+	projectDir string
+	workingDir string
+	app        *config.Application
+}
+
+var pl = fmt.Println
+
+const SCAFFOLD_CHAIN_CMD = "ignite scaffold chain"
+const SCAFFOLD_MOD_CMD = "ignite scaffold module"
+const SCAFFOLD_TY_CMD = "ignite scaffold type"
+const SCAFFOLD_MSG_CMD = "ignite scaffold message"
+const SCAFFOLD_QUERY_CMD = "ignite scaffold query"
+
+func NewBuildContext(projectDir, workingDir string, app *config.Application) *BuildContext {
+	return &BuildContext{
+		projectDir: projectDir,
+		workingDir: workingDir,
+		app:        app,
+	}
+}
+
+func readFile() (*config.Application, error) {
+	// Read the JSON file
+	data, err := ioutil.ReadFile("project.json")
+	if err != nil {
+		return nil, fmt.Errorf("Error reading JSON file: %v", err)
+	}
+
+	// Unmarshal the JSON data into your structs
+	var app config.Application
+	if err := json.Unmarshal(data, &app); err != nil {
+		return nil, fmt.Errorf("Error unmarshalling JSON data: %v", err)
+	}
+	return &app, nil
+}
+
+func getCurrentDirectory() (string, error) {
+	// Get the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return cwd, nil
+}
+
+func buildApplication(context *BuildContext) {
+
+	execute(
+		fmt.Sprintf("%s %s --no-module", SCAFFOLD_CHAIN_CMD, context.app.Name), context.workingDir, context)
+
+	for _, module := range context.app.Modules {
+		buildModule(module, context)
+	}
+}
+
+func buildModule(module config.Module, context *BuildContext) {
+	buildCmd := fmt.Sprintf("%s %s", SCAFFOLD_MOD_CMD, module.Name)
+
+	if module.IsIBCEnabled {
+		buildCmd = fmt.Sprintf("%s --ibc", buildCmd)
+	}
+	// Process the module dependencies
+	if len(module.Dependencies) > 0 {
+
+		buildCmd = fmt.Sprintf("%s --dep", buildCmd)
+
+		for index, dependency := range module.Dependencies {
+			if index == 0 {
+				buildCmd = fmt.Sprintf("%s %s", buildCmd, dependency)
+			} else {
+				buildCmd = fmt.Sprintf("%s,%s", buildCmd, dependency)
+			}
+		}
+	}
+
+	execute(buildCmd, context.projectDir, context)
+
+	commit(
+		fmt.Sprintf("Built module %s", module.Name), context)
+
+	buildEntities(module, context)
+	buildMessages(module, context)
+	buildQueries(module, context)
+}
+
+func buildEntities(module config.Module, context *BuildContext) {
+	for _, entity := range module.Entities {
+
+		listOfField := getListOfFields(entity.Fields, context)
+
+		buildCmd := fmt.Sprintf("%s %s %s --module %s",
+			SCAFFOLD_TY_CMD, entity.Name, listOfField, module.Name)
+
+		execute(buildCmd, context.projectDir, context)
+
+		commit(
+			fmt.Sprintf("Built entity %s for module %s", entity.Name, module.Name), context)
+	}
+}
+
+func buildMessages(module config.Module, context *BuildContext) {
+	for _, message := range module.Messages {
+		listOfField := getListOfFields(message.Fields, context)
+
+		buildCmd := fmt.Sprintf("%s %s %s --module %s",
+			SCAFFOLD_MSG_CMD, message.Name, listOfField, module.Name)
+
+		execute(buildCmd, context.projectDir, context)
+
+		commit(
+			fmt.Sprintf("Built message %s for module %s", message.Name, module.Name), context)
+	}
+}
+
+func buildQueries(module config.Module, context *BuildContext) {
+	for _, query := range module.Queries {
+		listOfField := getListOfFields(query.Fields, context)
+
+		buildCmd := fmt.Sprintf("%s %s %s --module %s",
+			SCAFFOLD_QUERY_CMD, query.Name, listOfField, module.Name)
+
+		execute(buildCmd, context.projectDir, context)
+
+		commit(
+			fmt.Sprintf("Built query %s for module %s", query.Name, module.Name), context)
+	}
+}
+
+func getListOfFields(fields []config.Field, context *BuildContext) string {
+	// Implement buildField function here
+	var listOfFields = ""
+	for _, field := range fields {
+		fieldString := fmt.Sprintf("%s:%s", field.Name, field.Type)
+
+		if listOfFields == "" {
+			listOfFields = fieldString
+
+		} else {
+			listOfFields = fmt.Sprintf("%s %s", listOfFields, fieldString)
+		}
+	}
+	return listOfFields
+}
+
+func commit(message string, context *BuildContext) {
+	execute("git add .", context.projectDir, context)
+
+	execute(
+		fmt.Sprintf("git commit -m '%s'", message), context.projectDir, context)
+}
+
+func execute(command string, executeInDir string, context *BuildContext) {
+	pl(command)
+	// create a new *Cmd instance
+	// here we pass the command as the first argument and the arguments to pass to the command as the
+	// remaining arguments in the function
+	cmd := exec.Command("/bin/sh", "-c", command)
+
+	cmd.Dir = executeInDir
+
+	// The `Output` method executes the command and
+	// collects the output, returning its value
+	out, err := cmd.Output()
+	if err != nil {
+		// if there was any error, print it here
+		fmt.Println("could not run command: ", err)
+	}
+	// otherwise, print the output from running the command
+	fmt.Println("Output: ", string(out))
+}
+
+func mains() {
+	app, err := readFile()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	workingDir, err := getCurrentDirectory()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	projectDir := fmt.Sprintf("%s/%s", workingDir, app.Name)
+	context := NewBuildContext(projectDir, workingDir, app)
+
+	pl("Using context: ", context)
+
+	buildApplication(context)
+
+	// Create an event bus.
+	eventBus := event.NewEventBus()
+
+	// Create an event handler.
+	handler := &config.ConfigurationLoadedEventHandler{}
+
+	// Subscribe the handler to the ConfigurationLoadedEvent.
+	if err := eventBus.Subscribe("ConfigurationLoadedEvent", handler); err != nil {
+		log.Fatalf("Error subscribing to event: %v", err)
+	}
+
+	// Publish a ConfigurationLoadedEvent.
+	event := &config.ConfigurationLoadedEvent{ConfigFilePath: "config.json"}
+	eventBus.Publish("ConfigurationLoadedEvent", event)
+
+	// Wait for a moment to allow the event handler to process the event.
+	time.Sleep(time.Second)
+}

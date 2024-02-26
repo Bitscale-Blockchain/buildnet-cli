@@ -1,0 +1,70 @@
+{
+    "name": "bitscale",
+    "modules": [
+        {
+            "name": "dex",
+            "isIBCEnabled": true,
+            "dependencies": [
+                "account",
+                "bank"
+            ],
+            "entities": [
+                {
+                    "name": "lendingPool",
+                    "fields": [
+                        {
+                            "name": "assetOne",
+                            "type": "string"
+                        },
+                        {
+                            "name": "assetTwo",
+                            "type": "string"
+                        },
+                        {
+                            "name": "assetOneBalance",
+                            "type": "uint"
+                        },
+                        {
+                            "name": "assetTwoBalance",
+                            "type": "uint"
+                        }
+                    ]
+                }
+            ],
+            "messages": [
+                {
+                    "name": "dexSwap",
+                    "fields": [
+                        {
+                            "name": "assetOne",
+                            "type": "string"
+                        },
+                        {
+                            "name": "assetTwo",
+                            "type": "string"
+                        },
+                        {
+                            "name": "amountIn",
+                            "type": "uint"
+                        },
+                        {
+                            "name": "amountOut",
+                            "type": "uint"
+                        }
+                    ]
+                }
+            ],
+            "queries": [
+                {
+                    "name": "dexGetPool",
+                    "fields": [
+                        {
+                            "name": "poolId",
+                            "type": "uint"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
