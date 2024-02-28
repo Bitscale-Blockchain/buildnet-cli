@@ -1,0 +1,15 @@
+syntax = "proto3";
+package bitscale.dex;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "bitscale/x/dex/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "bitscale/x/dex/Params";
+  option (gogoproto.equal) = true;
+
+  
+}
