@@ -3,10 +3,6 @@ package app
 import (
 	"time"
 
-	dexmodulev1 "bitscale/api/bitscale/dex/module"
-	_ "bitscale/x/dex/module" // import for side-effects
-	dexmoduletypes "bitscale/x/dex/types"
-
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
@@ -56,6 +52,10 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"google.golang.org/protobuf/types/known/durationpb"
+
+	dexmodulev1 "bitscale/api/bitscale/dex/module"
+	_ "bitscale/x/dex/module" // import for side-effects
+	dexmoduletypes "bitscale/x/dex/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
