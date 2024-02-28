@@ -6,3 +6,4 @@
 # Ignore vendor directory if using modules
 /vendor/
 bin/
+target/
