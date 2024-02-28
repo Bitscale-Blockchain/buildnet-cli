@@ -1,0 +1,12 @@
+syntax = "proto3";
+package bitscale.dex;
+
+option go_package = "bitscale/x/dex/types";
+
+message LendingPool {
+  
+  string assetOne = 1; 
+  string assetTwo = 2; 
+  uint64 assetOneBalance = 3; 
+  uint64 assetTwoBalance = 4; 
+}
