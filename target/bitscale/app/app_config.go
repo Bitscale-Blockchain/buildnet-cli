@@ -52,10 +52,6 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"google.golang.org/protobuf/types/known/durationpb"
-
-	bitscalemodulev1 "bitscale/api/bitscale/bitscale/module"
-	_ "bitscale/x/bitscale/module" // import for side-effects
-	bitscalemoduletypes "bitscale/x/bitscale/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -94,7 +90,6 @@ var (
 		consensustypes.ModuleName,
 		circuittypes.ModuleName,
 		// chain modules
-		bitscalemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -119,7 +114,6 @@ var (
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		// chain modules
-		bitscalemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -138,7 +132,6 @@ var (
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		// chain modules
-		bitscalemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -293,10 +286,6 @@ var (
 			{
 				Name:   circuittypes.ModuleName,
 				Config: appconfig.WrapAny(&circuitmodulev1.Module{}),
-			},
-			{
-				Name:   bitscalemoduletypes.ModuleName,
-				Config: appconfig.WrapAny(&bitscalemodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},
