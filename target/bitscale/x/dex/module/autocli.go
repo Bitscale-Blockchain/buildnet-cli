@@ -28,6 +28,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					RpcMethod: "UpdateParams",
 					Skip:      true, // skipped because authority gated
 				},
+				{
+					RpcMethod:      "DexSwap",
+					Use:            "dex-swap [asset-one] [asset-two] [amount-in] [amount-out]",
+					Short:          "Send a dexSwap tx",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "assetOne"}, {ProtoField: "assetTwo"}, {ProtoField: "amountIn"}, {ProtoField: "amountOut"}},
+				},
 				// this line is used by ignite scaffolding # autocli/tx
 			},
 		},
