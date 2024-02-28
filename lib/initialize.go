@@ -1,8 +1,8 @@
 package lib
 
 import (
+	"bitscale/buildnet/app"
 	"bitscale/buildnet/lib/build"
-	"bitscale/buildnet/lib/config"
 	"bitscale/buildnet/lib/event"
 	"sync"
 )
@@ -21,8 +21,8 @@ func GetEventBus() *event.EventBus {
 			Context:  &event.EventContext{},
 		}
 		eventBus.Context.EventBus = eventBus
-		config.InitEventHandlers(eventBus)
 		build.InitEventHandlers(eventBus)
+		app.InitEventHandlers(eventBus)
 	})
 	return eventBus
 }

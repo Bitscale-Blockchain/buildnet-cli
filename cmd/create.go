@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"bitscale/buildnet/app"
 	"bitscale/buildnet/lib"
-	"bitscale/buildnet/lib/config"
 	"bitscale/buildnet/lib/event"
 
 	"github.com/spf13/cobra"
@@ -18,9 +18,9 @@ var createCmd = &cobra.Command{
 		configFile := args[0]
 
 		lib.GetEventBus().Publish(
-			config.StartConfigurationLoadingEvent, event.Event{
+			app.StartConfigurationLoadingEvent, event.Event{
 				Data: configFile,
-				Type: config.StartConfigurationLoadingEvent,
+				Type: app.StartConfigurationLoadingEvent,
 			})
 	},
 }

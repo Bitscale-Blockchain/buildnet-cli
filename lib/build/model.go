@@ -4,6 +4,20 @@ import (
 	"bitscale/buildnet/lib/event"
 )
 
+type Configuration struct {
+	Data interface{}
+}
+
+type PipelineBuilder struct {
+	pipeline     *Pipeline
+	currentStage *Stage
+}
+
+// PipelineFactory is the interface for creating pipelines.
+type PipelineFactory interface {
+	CreatePipeline() *Pipeline
+}
+
 type Pipeline struct {
 	Name   string
 	Stages []*Stage
@@ -15,15 +29,14 @@ type Stage struct {
 }
 
 type Task struct {
-	Name     string
-	Function func() error
+	Name    string
+	Execute func(context *BuildContext) error
 }
 
 type BuildContext struct {
 	event.EventContext
 	State         string
 	Errors        []error
-	Pipeline      Pipeline
 	Configuration *BuildConfiguration
 	Progress      *BuildProgress
 	Results       *BuildResults
@@ -34,7 +47,10 @@ type BuildContext struct {
 }
 
 // BuildConfiguration represents the configuration settings for the build.
-type BuildConfiguration struct{}
+type BuildConfiguration struct {
+	Configuration
+	Pipeline Pipeline
+}
 
 // BuildProgress represents the progress of the build.
 type BuildProgress struct{}
@@ -43,19 +59,8 @@ type BuildProgress struct{}
 type BuildResults struct{}
 
 // BuildEnvironment represents the environment in which the build is being executed.
-type BuildEnvironment struct{}
-
-// NewBuildState creates a new BuildState with the initial state.
-func NewBuildContext(eventBus *event.EventBus) *BuildContext {
-	return &BuildContext{
-		EventContext: event.EventContext{
-			EventBus: eventBus,
-		},
-		State:         "started",
-		Configuration: &BuildConfiguration{},
-		Progress:      &BuildProgress{},
-		Results:       &BuildResults{},
-		Errors:        []error{},
-		Environment:   &BuildEnvironment{},
-	}
+type BuildEnvironment struct {
+	WorkingDir string
+	ProjectDir string
+	TargetDir  string
 }

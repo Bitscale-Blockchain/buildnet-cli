@@ -3,7 +3,7 @@
     "modules": [
         {
             "name": "dex",
-            "isIBCEnabled": true,
+            "IsIBCEnabled": true,
             "dependencies": [
                 "account",
                 "bank"

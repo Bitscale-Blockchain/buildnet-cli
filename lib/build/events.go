@@ -1,22 +1,23 @@
 package build
 
 import (
-	"bitscale/buildnet/lib/config"
 	"bitscale/buildnet/lib/event"
 	"fmt"
 	"log"
 )
 
 const (
+	StartBuildEvent        = "StartBuildEvent"
 	PipelineStartedEvent   = "PipelineStartedEvent"
-	PipelineCompletedEvent = "PipelineCompletedEvent"
 	PipelineErrorEvent     = "PipelineErrorEvent"
 	StageStartedEvent      = "StageStartedEvent"
-	StageCompletedEvent    = "StageCompletedEvent"
 	StageErrorEvent        = "StageErrorEvent"
 	TaskStartedEvent       = "TaskStartedEvent"
-	TaskCompletedEvent     = "TaskCompletedEvent"
 	TaskErrorEvent         = "TaskErrorEvent"
+	TaskCompletedEvent     = "TaskCompletedEvent"
+	StageCompletedEvent    = "StageCompletedEvent"
+	PipelineCompletedEvent = "PipelineCompletedEvent"
+	BuildCompletedEvent    = "StartBuildCompletedEvent"
 )
 
 const (
@@ -29,6 +30,8 @@ const (
 	TaskErrorState       = "TaskErrorState"
 )
 
+type StartBuildEventHandler struct{}
+type BuildCompletedEventHandler struct{}
 type PipelineStartedEventHandler struct{}
 type PipelineCompletedEventHandler struct{}
 type PipelineErrorEventHandler struct{}
@@ -42,6 +45,9 @@ type TaskErrorEventHandler struct{}
 // InitEventHandlers initializes event handlers for package 1.
 func InitEventHandlers(eventBus *event.EventBus) {
 	// Initialize and subscribe event handlers for package 1
+	eventBus.Subscribe(StartBuildEvent, &StartBuildEventHandler{})
+	eventBus.Subscribe(BuildCompletedEvent, &BuildCompletedEventHandler{})
+	eventBus.Subscribe(PipelineStartedEvent, &PipelineStartedEventHandler{})
 	eventBus.Subscribe(PipelineStartedEvent, &PipelineStartedEventHandler{})
 	eventBus.Subscribe(PipelineCompletedEvent, &PipelineCompletedEventHandler{})
 	eventBus.Subscribe(PipelineErrorEvent, &PipelineErrorEventHandler{})
@@ -54,6 +60,45 @@ func InitEventHandlers(eventBus *event.EventBus) {
 }
 
 // HandleEvent handles a StartApplicationBuildEvent.
+func (h *StartBuildEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
+	// Ensure received valid event type
+	if eventObj.Type != StartBuildEvent {
+		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
+	}
+
+	// Type switch to check the type of eventObj.Data
+	buildContext, ok := eventObj.Data.(*BuildContext)
+	if !ok {
+		// eventObj.Data is not a string, return an error
+		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
+	}
+	// Execute the pipeline
+	buildContext.ExecutePipeline()
+
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, buildContext)
+
+	return nil
+}
+
+// HandleEvent handles a StartApplicationBuildEvent.
+func (h *BuildCompletedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
+	// Ensure received valid event type
+	if eventObj.Type != BuildCompletedEvent {
+		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
+	}
+
+	// Type switch to check the type of eventObj.Data
+	data, ok := eventObj.Data.(*BuildContext)
+	if !ok {
+		// eventObj.Data is not a string, return an error
+		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
+	}
+
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
+	return nil
+}
+
+// HandleEvent handles a StartApplicationBuildEvent.
 func (h *PipelineStartedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
 	if eventObj.Type != PipelineStartedEvent {
@@ -61,31 +106,31 @@ func (h *PipelineStartedEventHandler) HandleEvent(eventObj event.Event, context 
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a CompletedApplicationBuildEvent.
 func (h *PipelineCompletedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != PipelineCompletedEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
@@ -97,120 +142,120 @@ func (h *PipelineErrorEventHandler) HandleEvent(eventObj event.Event, context ev
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a StageStartedEventData.
 func (h *StageStartedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != StageStartedEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a CompletedApplicationBuildEvent.
 func (h *StageCompletedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != StageCompletedEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a CompletedApplicationBuildEvent.
 func (h *StageErrorEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != StageErrorEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a CompletedApplicationBuildEvent.
 func (h *TaskStartedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != TaskStartedEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a CompletedApplicationBuildEvent.
 func (h *TaskCompletedEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != TaskCompletedEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }
 
 // HandleEvent handles a CompletedApplicationBuildEvent.
 func (h *TaskErrorEventHandler) HandleEvent(eventObj event.Event, context event.EventContext) error {
 	// Ensure received valid event type
-	if eventObj.Type != PipelineStartedEvent {
+	if eventObj.Type != TaskErrorEvent {
 		return fmt.Errorf("unexpected event type: %s", eventObj.Type)
 	}
 
 	// Type switch to check the type of eventObj.Data
-	data, ok := eventObj.Data.(config.Configuration)
+	data, ok := eventObj.Data.(*BuildContext)
 	if !ok {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected event data type: %T", eventObj.Data)
 	}
 
-	log.Printf("Handling event: %s and artifact: %T", eventObj.Type, data)
+	log.Printf("Finished handling event: %s and artifact: %T", eventObj.Type, data)
 	return nil
 }

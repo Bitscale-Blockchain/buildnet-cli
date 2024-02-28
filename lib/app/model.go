@@ -16,7 +16,9 @@ type Network struct {
 type Module struct {
 	common.HasNameAndId
 	Dependencies []string
-	Artifacts    []Artifact
+	Entities     []Artifact
+	Messages     []Artifact
+	Queries      []Artifact
 	IsIBCEnabled bool
 }
 
