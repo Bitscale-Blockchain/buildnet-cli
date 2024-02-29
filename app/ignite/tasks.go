@@ -33,6 +33,7 @@ func ScaffoldIgniteProjectTask(context *build.BuildContext) error {
 	cmdString := fmt.Sprintf("%s %s", SCAFFOLD_CHAIN_CMD, app.Name)
 	// Execute the command
 	utils.ShellExecute(cmdString, context.Environment.TargetDir)
+	utils.GitCommitChanges(fmt.Sprintf("Scaffolded project %s", app.Name), context.Environment.ProjectDir)
 	return nil
 }
 

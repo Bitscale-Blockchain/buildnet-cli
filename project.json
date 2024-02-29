@@ -1,6 +1,6 @@
 {
     "name": "bitscale",
-    "frontends": ["vue", "react", "ts-client"],
+    "frontends": ["vue"],
     "modules": [
         {
             "name": "dex",
