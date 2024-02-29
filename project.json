@@ -1,9 +1,12 @@
 {
     "name": "bitscale",
+    "hasProjectModule": false,
+    "tokenFactory": "bitscale",
+    "frontends": ["vue", "react", "ts-client"],
     "modules": [
         {
             "name": "dex",
-            "IsIBCEnabled": true,
+            "isIBCEnabled": true,
             "dependencies": [
                 "account",
                 "bank"

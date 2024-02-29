@@ -6,8 +6,11 @@ import (
 
 type Blockchain struct {
 	common.HasNameAndId
-	Modules []Module
-	Network Network
+	Modules          []Module
+	Network          Network
+	HasProjectModule bool
+	TokenFactory     string
+	Frontends        []string
 }
 
 type Network struct {

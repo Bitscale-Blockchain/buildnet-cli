@@ -3,7 +3,6 @@ package ignite
 import (
 	"bitscale/buildnet/lib/app"
 	"bitscale/buildnet/lib/build"
-	"log"
 )
 
 // MyPipelineFactory is an implementation of PipelineFactory that creates a specific pipeline.
@@ -19,9 +18,10 @@ func (f *IgniteCliBuilderPipelineFactory) CreatePipeline() *build.Pipeline {
 		AddTask("ScaffoldIgniteTypesTask", ScaffoldIgniteTypesTask).
 		AddTask("ScaffoldIgniteMessagesTask", ScaffoldIgniteMessagesTask).
 		AddTask("ScaffoldIgniteQueriesTask", ScaffoldIgniteQueriesTask).
+		AddTask("ScaffoldIgniteTokenFactoryTask", ScaffoldIgniteTokenFactoryTask).
+		AddTask("ScaffoldIgniteFrontendTask", ScaffoldIgniteFrontendTask).
 		AddStage("Stage2").
 		AddTask("Task3", func(context *build.BuildContext) error {
-			log.Print("@@@@@@@@@@@@@@@@@Executing task3@@@@@@@@@@@@@@@@@")
 			// Task3 implementation
 			return nil
 		}).

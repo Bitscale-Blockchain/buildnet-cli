@@ -38,3 +38,28 @@ func GetListOfFields(fields interface{}) string {
 	}
 	return listOfFields
 }
+
+func HasElementWithName(arr interface{}, name string) bool {
+	val := reflect.ValueOf(arr)
+	if val.Kind() != reflect.Slice {
+		return false
+	}
+
+	for i := 0; i < val.Len(); i++ {
+		elem := val.Index(i)
+		if elem.Kind() != reflect.Struct {
+			continue
+		}
+
+		nameField := elem.FieldByName("Name")
+		if !nameField.IsValid() || nameField.Kind() != reflect.String {
+			continue
+		}
+
+		if nameField.String() == name {
+			return true
+		}
+	}
+
+	return false
+}
