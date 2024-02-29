@@ -29,14 +29,8 @@ func ScaffoldIgniteProjectTask(context *build.BuildContext) error {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
-	// Should we create the project with or without
-	// a default module
-	noModuleFlag := "--no-module"
-	if app.HasProjectModule {
-		noModuleFlag = ""
-	}
 	// Build the command string
-	cmdString := fmt.Sprintf("%s %s %s", SCAFFOLD_CHAIN_CMD, app.Name, noModuleFlag)
+	cmdString := fmt.Sprintf("%s %s", SCAFFOLD_CHAIN_CMD, app.Name)
 	// Execute the command
 	utils.ShellExecute(cmdString, context.Environment.TargetDir)
 	return nil
@@ -52,23 +46,10 @@ func ScaffoldIgniteTokenFactoryTask(context *build.BuildContext) error {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
-	// Exit task if project does not need a token factory
-	if app.TokenFactory == "" || len(app.TokenFactory) == 0 {
-		return nil
-	}
-	// Ensure the specified project module actually exist
-	if app.TokenFactory == app.Name && !app.HasProjectModule {
-		return fmt.Errorf(
-			"project module declared as token factory does not exist: %s", app.TokenFactory)
-	}
-	// Ensure the specified module actually exist
-	if !utils.HasElementWithName(app.Modules, app.TokenFactory) {
-		return fmt.Errorf("module declared as token factory does not exist: %s", app.TokenFactory)
-	}
 	// Execute the command string
-	cmdString := fmt.Sprintf("%s %s", SCAFFOLD_DENOM_CMD, app.TokenFactory)
-	//utils.ShellExecute(cmdString, context.Environment.TargetDir)
-	log.Printf("About to execute command %s in direcctory %s", cmdString, context.Environment.TargetDir)
+	cmdString := fmt.Sprintf("%s %s", SCAFFOLD_DENOM_CMD, app.Name)
+	//utils.ShellExecute(cmdString, context.Environment.ProjectDir)
+	log.Printf("About to execute command %s in direcctory %s", cmdString, context.Environment.ProjectDir)
 	return nil
 }
 
@@ -95,16 +76,16 @@ func ScaffoldIgniteFrontendTask(context *build.BuildContext) error {
 	targetDir := context.Environment.ProjectDir
 
 	for _, frontend := range app.Frontends {
-		cmdString := ""
+		// Set as scaffold command
+		cmdString := SCAFFOLD_CMD
+		// ...unless ts-client is specified
 		if frontend == "ts-client" {
 			cmdString = GENERATE_CMD
-		} else {
-			cmdString = SCAFFOLD_CMD
 		}
 		cmdString = fmt.Sprintf("%s %s", cmdString, frontend)
-		log.Printf("About to execute command %s in direcctory %s", cmdString, targetDir)
-		//utils.ShellExecute(cmdString, targetDir)
-		//utils.GitCommitChanges(fmt.Sprintf("Added frontend %s", frontend), targetDir)
+		log.Printf("About to execute command %s in directory %s", cmdString, targetDir)
+		utils.ShellExecute(cmdString, targetDir)
+		utils.GitCommitChanges(fmt.Sprintf("Added frontend %s", frontend), targetDir)
 	}
 
 	return nil

@@ -14,11 +14,11 @@ func (f *IgniteCliBuilderPipelineFactory) CreatePipeline() *build.Pipeline {
 		AddStage("IgniteStage").
 		AddTask("InitializeTargetDirectoryTask", app.InitializeTargetDirectoryTask).
 		AddTask("ScaffoldIgniteProjectTask", ScaffoldIgniteProjectTask).
-		AddTask("ScaffoldIgniteModulesTask", ScaffoldIgniteModulesTask).
+		AddTask("ScaffoldIgniteTokenFactoryTask", ScaffoldIgniteTokenFactoryTask).
+		/*AddTask("ScaffoldIgniteModulesTask", ScaffoldIgniteModulesTask).
 		AddTask("ScaffoldIgniteTypesTask", ScaffoldIgniteTypesTask).
 		AddTask("ScaffoldIgniteMessagesTask", ScaffoldIgniteMessagesTask).
-		AddTask("ScaffoldIgniteQueriesTask", ScaffoldIgniteQueriesTask).
-		AddTask("ScaffoldIgniteTokenFactoryTask", ScaffoldIgniteTokenFactoryTask).
+		AddTask("ScaffoldIgniteQueriesTask", ScaffoldIgniteQueriesTask). */
 		AddTask("ScaffoldIgniteFrontendTask", ScaffoldIgniteFrontendTask).
 		AddStage("Stage2").
 		AddTask("Task3", func(context *build.BuildContext) error {

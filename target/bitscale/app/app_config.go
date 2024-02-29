@@ -3,10 +3,6 @@ package app
 import (
 	"time"
 
-	dexmodulev1 "bitscale/api/bitscale/dex/module"
-	_ "bitscale/x/dex/module" // import for side-effects
-	dexmoduletypes "bitscale/x/dex/types"
-
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
 	authmodulev1 "cosmossdk.io/api/cosmos/auth/module/v1"
@@ -56,6 +52,10 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"google.golang.org/protobuf/types/known/durationpb"
+
+	bitscalemodulev1 "bitscale/api/bitscale/bitscale/module"
+	_ "bitscale/x/bitscale/module" // import for side-effects
+	bitscalemoduletypes "bitscale/x/bitscale/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -94,7 +94,7 @@ var (
 		consensustypes.ModuleName,
 		circuittypes.ModuleName,
 		// chain modules
-		dexmoduletypes.ModuleName,
+		bitscalemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
 
@@ -119,7 +119,7 @@ var (
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		// chain modules
-		dexmoduletypes.ModuleName,
+		bitscalemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	}
 
@@ -138,7 +138,7 @@ var (
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		// chain modules
-		dexmoduletypes.ModuleName,
+		bitscalemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	}
 
@@ -159,7 +159,6 @@ var (
 		{Account: ibctransfertypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner}},
 		{Account: ibcfeetypes.ModuleName},
 		{Account: icatypes.ModuleName},
-		{Account: dexmoduletypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner, authtypes.Staking}},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 
@@ -296,8 +295,8 @@ var (
 				Config: appconfig.WrapAny(&circuitmodulev1.Module{}),
 			},
 			{
-				Name:   dexmoduletypes.ModuleName,
-				Config: appconfig.WrapAny(&dexmodulev1.Module{}),
+				Name:   bitscalemoduletypes.ModuleName,
+				Config: appconfig.WrapAny(&bitscalemodulev1.Module{}),
 			},
 			// this line is used by starport scaffolding # stargate/app/moduleConfig
 		},
