@@ -5,7 +5,6 @@ import (
 	"bitscale/buildnet/lib/build"
 	"bitscale/buildnet/lib/utils"
 	"fmt"
-	"log"
 )
 
 const SCAFFOLD_CMD = "ignite scaffold"
@@ -17,7 +16,7 @@ const SCAFFOLD_MESSAGE_CMD = "ignite scaffold message"
 const SCAFFOLD_QUERY_CMD = "ignite scaffold query"
 const SCAFFOLD_VUE_CLIENT_CMD = "ignite scaffold vue"
 const SCAFFOLD_TS_CLIENT_CMD = "ignite generate ts-client"
-const SCAFFOLD_DENOM_CMD = "scaffold map Denom description:string ticker:string precision:int url:string maxSupply:int supply:int canChangeMaxSupply:bool --signer owner --index denom --module "
+const SCAFFOLD_DENOM_CMD = "ignite scaffold map Denom description:string ticker:string precision:int url:string maxSupply:int supply:int canChangeMaxSupply:bool --signer owner --index denom --module "
 
 func ScaffoldIgniteProjectTask(context *build.BuildContext) error {
 	// Task1 implementation
@@ -29,11 +28,10 @@ func ScaffoldIgniteProjectTask(context *build.BuildContext) error {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
-	// Build the command string
-	cmdString := fmt.Sprintf("%s %s", SCAFFOLD_CHAIN_CMD, app.Name)
 	// Execute the command
-	utils.ShellExecute(cmdString, context.Environment.TargetDir)
-	utils.GitCommitChanges(fmt.Sprintf("Scaffolded project %s", app.Name), context.Environment.ProjectDir)
+	utils.ShellExecute(
+		fmt.Sprintf("%s %s", SCAFFOLD_CHAIN_CMD, app.Name), context.GetTargetDir())
+
 	return nil
 }
 
@@ -48,9 +46,11 @@ func ScaffoldIgniteTokenFactoryTask(context *build.BuildContext) error {
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
 	// Execute the command string
-	cmdString := fmt.Sprintf("%s %s", SCAFFOLD_DENOM_CMD, app.Name)
-	//utils.ShellExecute(cmdString, context.Environment.ProjectDir)
-	log.Printf("About to execute command %s in direcctory %s", cmdString, context.Environment.ProjectDir)
+	utils.ShellExecute(
+		fmt.Sprintf("%s %s", SCAFFOLD_DENOM_CMD, app.Name), context.GetProjectDir())
+	// Commit changes
+	utils.GitCommitChanges(
+		fmt.Sprintf("Scaffolded token factory for module %s", app.Name), context.GetProjectDir())
 	return nil
 }
 
@@ -74,7 +74,6 @@ func ScaffoldIgniteFrontendTask(context *build.BuildContext) error {
 	if !utils.ContainsOnlyAllowedValues(app.Frontends, allowedValues) {
 		return fmt.Errorf("unexpected value declared as fronten: %s", app.Frontends)
 	}
-	targetDir := context.Environment.ProjectDir
 
 	for _, frontend := range app.Frontends {
 		// Set as scaffold command
@@ -83,10 +82,11 @@ func ScaffoldIgniteFrontendTask(context *build.BuildContext) error {
 		if frontend == "ts-client" {
 			cmdString = GENERATE_CMD
 		}
-		cmdString = fmt.Sprintf("%s %s", cmdString, frontend)
-		log.Printf("About to execute command %s in directory %s", cmdString, targetDir)
-		utils.ShellExecute(cmdString, targetDir)
-		utils.GitCommitChanges(fmt.Sprintf("Added frontend %s", frontend), targetDir)
+		utils.ShellExecute(
+			fmt.Sprintf("%s %s", cmdString, frontend), context.GetProjectDir())
+
+		utils.GitCommitChanges(
+			fmt.Sprintf("Added frontend %s", frontend), context.GetProjectDir())
 	}
 
 	return nil
@@ -119,9 +119,10 @@ func ScaffoldIgniteModulesTask(context *build.BuildContext) error {
 				}
 			}
 		}
-		targetDir := context.Environment.ProjectDir
-		utils.ShellExecute(cmdString, targetDir)
-		utils.GitCommitChanges(fmt.Sprintf("Built module %s", module.Name), targetDir)
+		utils.ShellExecute(cmdString, context.GetProjectDir())
+
+		utils.GitCommitChanges(
+			fmt.Sprintf("Built module %s", module.Name), context.GetProjectDir())
 	}
 	return nil
 }
@@ -137,8 +138,6 @@ func ScaffoldIgniteTypesTask(context *build.BuildContext) error {
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
 
-	targetDir := context.Environment.ProjectDir
-
 	for _, module := range app.Modules {
 
 		for _, entity := range module.Entities {
@@ -147,13 +146,10 @@ func ScaffoldIgniteTypesTask(context *build.BuildContext) error {
 			buildCmd := fmt.Sprintf("%s %s %s --module %s",
 				SCAFFOLD_TYPE_CMD, entity.Name, listOfField, module.Name)
 
-			fmt.Printf("Scaffolding type %s in module %s, with command %s", entity.Name, module.Name, buildCmd)
-			utils.ShellExecute(buildCmd, targetDir)
+			utils.ShellExecute(buildCmd, context.GetProjectDir())
 
-			commitMsg := fmt.Sprintf(
-				"Scaffolded type %s in module %s", entity.Name, module.Name)
-
-			utils.GitCommitChanges(commitMsg, targetDir)
+			utils.GitCommitChanges(fmt.Sprintf(
+				"Scaffolded type %s in module %s", entity.Name, module.Name), context.GetProjectDir())
 
 		}
 	}
@@ -170,8 +166,6 @@ func ScaffoldIgniteMessagesTask(context *build.BuildContext) error {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
-	targetDir := context.Environment.ProjectDir
-
 	for _, module := range app.Modules {
 
 		for _, message := range module.Messages {
@@ -180,13 +174,10 @@ func ScaffoldIgniteMessagesTask(context *build.BuildContext) error {
 			buildCmd := fmt.Sprintf("%s %s %s --module %s",
 				SCAFFOLD_MESSAGE_CMD, message.Name, listOfField, module.Name)
 
-			fmt.Printf("Scaffolding message %s in module %s, with command %s", message.Name, module.Name, buildCmd)
-			utils.ShellExecute(buildCmd, targetDir)
+			utils.ShellExecute(buildCmd, context.GetProjectDir())
 
-			commitMsg := fmt.Sprintf(
-				"Scaffolded message %s in module %s", message.Name, module.Name)
-
-			utils.GitCommitChanges(commitMsg, targetDir)
+			utils.GitCommitChanges(fmt.Sprintf(
+				"Scaffolded message %s in module %s", message.Name, module.Name), context.GetProjectDir())
 
 		}
 	}
@@ -203,8 +194,6 @@ func ScaffoldIgniteQueriesTask(context *build.BuildContext) error {
 		// eventObj.Data is not a string, return an error
 		return fmt.Errorf("unexpected app data type: %T", app)
 	}
-	targetDir := context.Environment.ProjectDir
-
 	for _, module := range app.Modules {
 
 		for _, query := range module.Queries {
@@ -213,14 +202,10 @@ func ScaffoldIgniteQueriesTask(context *build.BuildContext) error {
 			buildCmd := fmt.Sprintf("%s %s %s --module %s",
 				SCAFFOLD_QUERY_CMD, query.Name, listOfField, module.Name)
 
-			fmt.Printf("Scaffolding query %s in module %s, with command %s", query.Name, module.Name, buildCmd)
-			utils.ShellExecute(buildCmd, targetDir)
+			utils.ShellExecute(buildCmd, context.GetProjectDir())
 
-			commitMsg := fmt.Sprintf(
-				"Scaffolded query %s in module %s", query.Name, module.Name)
-
-			utils.GitCommitChanges(commitMsg, targetDir)
-
+			utils.GitCommitChanges(fmt.Sprintf(
+				"Scaffolded query %s in module %s", query.Name, module.Name), context.GetProjectDir())
 		}
 	}
 	return nil

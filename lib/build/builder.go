@@ -113,3 +113,9 @@ func (context *BuildContext) ExecutePipeline() error {
 
 	return nil
 }
+func (context *BuildContext) GetTargetDir() string {
+	return context.Environment.TargetDir
+}
+func (context *BuildContext) GetProjectDir() string {
+	return context.Environment.ProjectDir
+}
